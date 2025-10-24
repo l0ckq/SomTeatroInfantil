@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Som Final - Teatro Infantil 2025</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --surface-color: #2d2d2d;
+            --primary-color: #007acc;
+            --accent-color: #e6a200;
+            --text-color: #e0e0e0;
+            --text-secondary-color: #a0a0a0;
+            --danger-color: #d13438;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .main-layout { display: flex; width: 100%; height: 100%; }
+        .sound-panel { flex-basis: 60%; padding: 25px; display: flex; flex-direction: column; overflow-y: auto; }
+        .script-panel { flex-basis: 40%; height: 100vh; border-left: 2px solid #000; }
+        .script-panel embed { width: 100%; height: 100%; }
+        
+        h1 { text-align: center; margin-top: 0; margin-bottom: 20px; color: #fff; }
+
+        .player { background-color: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        #current-track-title { font-size: 1.2em; font-weight: bold; text-align: center; min-height: 26px; margin-bottom: 10px; color: var(--accent-color); }
+        .player-controls { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
+        
+        #play-pause-button { background-color: var(--primary-color); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+        #volume-slider { flex-grow: 1; -webkit-appearance: none; appearance: none; width: 100%; height: 8px; background: #444; border-radius: 5px; outline: none; }
+        #volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: var(--primary-color); cursor: pointer; border-radius: 50%; }
+        #volume-slider::-moz-range-thumb { width: 18px; height: 18px; background: var(--primary-color); cursor: pointer; border-radius: 50%; }
+        
+        .progress-container { width: 100%; background-color: #444; border-radius: 5px; height: 10px; cursor: pointer; }
+        #progress-bar { width: 0%; height: 100%; background-color: var(--primary-color); border-radius: 5px; }
+        .time-display { display: flex; justify-content: space-between; font-size: 0.9em; color: var(--text-secondary-color); margin-top: 5px; }
+        
+        #playlist { display: flex; flex-direction: column; gap: 20px; }
+        .character-group h2 { margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #444; color: var(--primary-color); cursor: pointer; transition: color 0.2s; }
+        .character-group h2.active { color: var(--accent-color); border-bottom-color: var(--accent-color); }
+        .button-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .playlist button { padding: 15px; font-size: 1em; background-color: #3c3c3c; color: var(--text-color); border: none; border-radius: 6px; cursor: pointer; text-align: left; transition: background-color 0.2s; }
+        .playlist button:hover { background-color: #4d4d4d; }
+        .playlist button.playing { background-color: var(--primary-color); color: #fff; font-weight: bold; }
+        
+        #stop-button { width: 100%; margin-top: 20px; padding: 15px; font-size: 1.1em; font-weight: bold; background-color: var(--danger-color); color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+        .links-container { display: flex; gap: 10px; margin-top: 20px; }
+        .backup-link, .rehearsal-link { flex: 1; text-align: center; padding: 10px; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold; }
+        .backup-link { background-color: #5a3e8a; }
+        .rehearsal-link { background-color: #1a6e33; }
+    </style>
+</head>
+<body>
+
+    <div class="main-layout">
+        <div class="sound-panel">
+            <h1>Painel de Som do Teatro</h1>
+
+            <div class="player">
+                <div id="current-track-title">Nenhuma faixa selecionada</div>
+                <div class="player-controls">
+                    <button id="play-pause-button">▶</button>
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.8">
+                </div>
+                <div class="progress-container" id="progress-container"><div id="progress-bar"></div></div>
+                <div class="time-display">
+                    <span id="current-time">00:00</span>
+                    <span id="total-time">00:00</span>
+                </div>
+            </div>
+            
+            <audio id="audio-player"></audio>
+
+            <div id="playlist">
+                <div class="character-group">
+                    <h2>Momentos Chave</h2>
+                    <div class="button-grid">
+                        <button data-src="audio/espirito-maligno-2.mp3" data-yt="2ZrfF-mYXEg">Espírito Maligno</button>
+                        <button data-src="audio/jesus-entrada.mp3" data-yt="FPGbO7uJg0g">Entrada de Jesus</button>
+                    </div>
+                </div>
+                <div class="character-group">
+                    <h2>Batman & Batgirl</h2>
+                    <div class="button-grid">
+                        <button data-src="audio/batman-entrada-2.mp3" data-yt="kK4H-LkrQjQ">1. Entrada</button>
+                        <button data-src="audio/batman-luta-3.mp3" data-yt="tUQn68TEEGg">2. Luta</button>
+                    </div>
+                </div>
+                <div class="character-group">
+                    <h2>Ladybug</h2>
+                    <div class="button-grid">
+                        <button data-src="audio/ladybug-entrada-novo.mp3" data-yt="3oFqLGSERNo">1. Entrada</button>
+                        <button data-src="audio/ladybug-luta-novo.mp3" data-yt="EAwWPadFsOA">2. Luta</button>
+                    </div>
+                </div>
+                <div class="character-group">
+                    <h2>Chapolin</h2>
+                    <div class="button-grid">
+                        <button data-src="audio/chapolin-entrada-novo.mp3" data-yt="mSUXQZPFURM">1. Entrada</button>
+                        <button data-src="audio/chapolin-luta-novo.mp3" data-yt="s9yMUjcgouQ">2. Luta</button>
+                    </div>
+                </div>
+                <div class="character-group">
+                    <h2>Vingadores</h2>
+                    <div class="button-grid">
+                        <button data-src="audio/vingadores-novo.mp3" data-yt="AYIvRQhYGS4">Soundtrack</button>
+                    </div>
+                </div>
+                <div class="character-group">
+                    <h2>Elsa</h2>
+                    <div class="button-grid">
+                        <button data-src="audio/elsa2-entrada-2.mp3" data-yt="3k3hcdRy2R8">1. Entrada</button>
+                        <button data-src="audio/elsa-luta-novo.mp3" data-yt="KPhqU--Mq1A">2. Luta</button>
+                    </div>
+                </div>
+                <div class="character-group">
+                    <h2>Liga da Justiça</h2>
+                    <div class="button-grid">
+                        <button data-src="audio/liga-entrada-2.mp3" data-yt="-QJhDlcwBS0">1. Entrada</button>
+                        <button data-src="audio/liga-luta-novo.mp3" data-yt="XHpsazH96is">2. Luta</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="stop-button">PARAR TUDO (ESC)</button>
+
+            <div class="links-container">
+                <a id="rehearsal-mode-link" href="#" target="_blank" class="rehearsal-link">🎬 Abrir Vídeo para Ensaio</a>
+                <a href="https://www.youtube.com/playlist?list=PLkrCw2CmSzieKe_dFOtg9m3jb7bSY1X-L" target="_blank" class="backup-link">⚠️ Playlist de Backup</a>
+            </div>
+        </div>
+
+        <div class="script-panel">
+            <embed src="ROTEIRO_TEATRO INFANTIL_2025.pdf" type="application/pdf" />
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Seleção de todos os elementos da interface
+            const audioPlayer = document.getElementById('audio-player');
+            const playlistButtons = document.querySelectorAll('#playlist button');
+            const stopButton = document.getElementById('stop-button');
+            const groupTitles = document.querySelectorAll('.character-group h2');
+            const rehearsalLink = document.getElementById('rehearsal-mode-link');
+            const playPauseButton = document.getElementById('play-pause-button');
+            const volumeSlider = document.getElementById('volume-slider');
+            const currentTrackTitle = document.getElementById('current-track-title');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const currentTimeEl = document.getElementById('current-time');
+            const totalTimeEl = document.getElementById('total-time');
+
+            let currentPlayingButton = null;
+            let activeGroup = null;
+            
+            audioPlayer.volume = volumeSlider.value; // Ajusta o volume inicial
+
+            // --- FUNÇÃO PRINCIPAL PARA TOCAR UMA FAIXA ---
+            function playTrack(button) {
+                if (currentPlayingButton) {
+                    currentPlayingButton.classList.remove('playing');
+                }
+                audioPlayer.src = button.getAttribute('data-src');
+                audioPlayer.play();
+                
+                // --- LÓGICA ATUALIZADA PARA O TÍTULO ---
+                const characterGroup = button.closest('.character-group');
+                const characterName = characterGroup.querySelector('h2').textContent;
+                const trackType = button.textContent.replace(/^\d+\.\s/, '');
+
+                // Se o grupo não for o de "Momentos Chave", combina os nomes. Senão, usa só o nome do botão.
+                if (characterName !== 'Momentos Chave') {
+                    currentTrackTitle.textContent = `${characterName} - ${trackType}`;
+                } else {
+                    currentTrackTitle.textContent = trackType;
+                }
+                // --- FIM DA LÓGICA DO TÍTULO ---
+
+                button.classList.add('playing');
+                currentPlayingButton = button;
+
+                // Atualiza o link de vídeo para ensaio
+                const youtubeId = button.getAttribute('data-yt');
+                if (youtubeId) {
+                    rehearsalLink.href = `https://www.youtube.com/watch?v=${youtubeId}`;
+                    rehearsalLink.style.opacity = '1';
+                } else {
+                    rehearsalLink.href = '#';
+                    rehearsalLink.style.opacity = '0.5';
+                }
+            }
+
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            // --- EVENTOS DE CONTROLE DO PLAYER ---
+            playPauseButton.addEventListener('click', () => {
+                if (audioPlayer.src) {
+                    if (audioPlayer.paused) audioPlayer.play();
+                    else audioPlayer.pause();
+                }
+            });
+
+            volumeSlider.addEventListener('input', () => { audioPlayer.volume = volumeSlider.value; });
+            audioPlayer.addEventListener('play', () => { playPauseButton.textContent = '⏸'; });
+            audioPlayer.addEventListener('pause', () => { playPauseButton.textContent = '▶'; });
+            
+            playlistButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    if (currentPlayingButton === button && !audioPlayer.paused) {
+                        audioPlayer.pause();
+                    } else {
+                        playTrack(button);
+                    }
+                });
+            });
+
+            // --- ATALHOS DE TECLADO ---
+            groupTitles.forEach(title => {
+                title.addEventListener('click', () => {
+                    if (activeGroup) activeGroup.classList.remove('active');
+                    title.classList.add('active');
+                    activeGroup = title;
+                });
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (!activeGroup) return;
+                const buttonsInGroup = activeGroup.closest('.character-group').querySelectorAll('button');
+                if (event.key === '1' && buttonsInGroup[0]) buttonsInGroup[0].click();
+                else if (event.key === '2' && buttonsInGroup[1]) buttonsInGroup[1].click();
+                else if (event.key === 'Escape') stopButton.click();
+            });
+            
+            stopButton.addEventListener('click', () => {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+                if (currentPlayingButton) currentPlayingButton.classList.remove('playing');
+                currentPlayingButton = null;
+                currentTrackTitle.textContent = 'Nenhuma faixa selecionada';
+                playPauseButton.textContent = '▶';
+                progressBar.style.width = '0%';
+                currentTimeEl.textContent = '00:00';
+            });
+
+            // --- ATUALIZAÇÕES DA BARRA DE PROGRESSO ---
+            audioPlayer.addEventListener('timeupdate', () => {
+                if (audioPlayer.duration) {
+                    progressBar.style.width = `${(audioPlayer.currentTime / audioPlayer.duration) * 100}%`;
+                    currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+                }
+            });
+
+            audioPlayer.addEventListener('loadedmetadata', () => { totalTimeEl.textContent = formatTime(audioPlayer.duration); });
+            audioPlayer.addEventListener('ended', () => {
+                if (currentPlayingButton) currentPlayingButton.classList.remove('playing');
+                playPauseButton.textContent = '▶';
+                currentTrackTitle.textContent = 'Nenhuma faixa selecionada';
+                progressBar.style.width = '0%';
+                currentTimeEl.textContent = '00:00';
+            });
+            
+            // Permite clicar na barra de progresso para avançar a música
+            progressContainer.addEventListener('click', function(e) {
+                if(audioPlayer.duration) {
+                    const clickPosition = e.pageX - this.offsetLeft;
+                    const newTime = (clickPosition * audioPlayer.duration) / this.offsetWidth;
+                    audioPlayer.currentTime = newTime;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
